@@ -1,6 +1,5 @@
 import api from "@/lib/axios";
 import { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth.types";
-import { refresh } from "next/cache";
 
 
 
@@ -33,6 +32,16 @@ export const authService = {
             return response.data;
         }catch(error){
             console.error("Failed to refresh:",error);
+            throw error;
+        }
+    },
+
+    logout: async () =>{
+        try{
+            const resposne = await api.post("/api/auth/logout");
+            return resposne.data;
+        }catch(error){
+            console.error("Failed to logout::",error);
             throw error;
         }
     }
