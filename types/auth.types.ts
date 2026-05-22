@@ -1,3 +1,4 @@
+import { UserResponse } from "./user.types";
 
 
 export interface AuthResponse{
@@ -18,4 +19,11 @@ export interface RegisterRequest{
     username: string;
     email: string;
     password: string;
+}
+
+
+export interface AuthState{
+    user: UserResponse | null;
+    setUser: (user: UserResponse) => void;
+    clearUser: () => void
 }

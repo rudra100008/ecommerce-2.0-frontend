@@ -3,22 +3,29 @@
 import { FormField } from "@/components/ui/FormField";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginFormData, loginSchema } from './../../../lib/validations/auth';
+import { LoginFormData, loginSchema } from "./../../../lib/validations/auth";
 import { useLogin } from "@/hooks/useAuth";
 import type { AxiosError } from "axios";
+import { EyeIcon, EyeOffIcon, ShoppingBag } from "lucide-react";
+import { useState } from "react";
 
 export default function LoginPage() {
- const {mutate:login,isPending,error} = useLogin();
- const {
+  const [showPassword, setShowPassword] = useState(false);
+  const { mutate: login, isPending, error } = useLogin();
+  const {
     register,
     handleSubmit,
-    formState:{errors},
- } = useForm<LoginFormData>({
+    formState: { errors },
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    mode:'onTouched' // validates when user leaves a field
- })
-  const onSubmit = async (data: LoginFormData) => {
-    login(data)
+    mode: "onTouched", // validates when user leaves a field
+  });
+
+  const onSubmit = (data: LoginFormData) => {
+    login(data);
+  };
+  const onEyeClick = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -27,20 +34,7 @@ export default function LoginPage() {
         {/*Headers */}
         <div className="mb-6 text-center">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-4 bg-primary">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-            </svg>
+            <ShoppingBag className="text-white" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight  text-primary">
             Shop Ease
@@ -51,7 +45,8 @@ export default function LoginPage() {
         {/*Badge */}
         {error && (
           <div className="badge badge-danger w-full justify-center mb-4 py-2 ">
-            {(error as AxiosError<{message: string}>)?.response?.data?.message || "Login Failed"}
+            {(error as AxiosError<{ message: string }>)?.response?.data
+              ?.message || "Login Failed"}
           </div>
         )}
 
@@ -59,7 +54,6 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Email input */}
           <FormField id="email" label="Email" error={errors.email?.message}>
-           
             <input
               id="email"
               type="email"
@@ -71,25 +65,44 @@ export default function LoginPage() {
           </FormField>
 
           {/* Password Input */}
-          <FormField id="password" label="Password" error={errors.password?.message}>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              className="input"
-              autoComplete="current-password"
-              {...register("password")}
-            />
+          <FormField
+            id="password"
+            label="Password"
+            error={errors.password?.message}
+          >
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                className="input"
+                autoComplete="current-password"
+                {...register("password")}
+              />
+
+              <button
+                type="button"
+                onClick={onEyeClick}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute top-1.5 right-2 text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                {showPassword ? (
+                  <EyeOffIcon className="w-5 h-5" />
+                ) : (
+                  <EyeIcon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </FormField>
           {/* Forgot-password */}
-            <div className="flex justify-end mt-2">
-              <a
-                href="/login/forgot-password"
-                className="text-sm font-medium text-accent hover:text-accent-hover transition-colors"
-              >
-                Forgot Password?
-              </a>
-            </div>
+          <div className="flex justify-end mt-2">
+            <a
+              href="/login/forgot-password"
+              className="text-sm font-medium text-accent hover:text-accent-hover transition-colors"
+            >
+              Forgot Password?
+            </a>
+          </div>
           {/* Sign In button */}
           <button
             type="submit"
