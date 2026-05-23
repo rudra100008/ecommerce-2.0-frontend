@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { useProducts } from './../../../hooks/useProducts';
+import Navbar from "@/components/common/CustomerNav";
 
 
-export default function ProductPage(){
+export default function ShopPage(){
     const [page,setPage] = useState(0);
     const {data,isLoading,isError,error} = useProducts(page);
 
@@ -17,7 +18,7 @@ export default function ProductPage(){
     }
     return(
         <div className="products-grid">
-
+            <Navbar />
             {data?.content.map((product)=>(
                 <div key={product.productId}>
                     <h3>{product.name}</h3>

@@ -1,3 +1,4 @@
+import { Role } from "@/constants/roles";
 
 export interface AddressResponse {
   addressId: number;
@@ -17,7 +18,7 @@ export interface UserResponse{
     imageUrl: string;
     imageCustomized: boolean;
     active : boolean;
-    role: "ROLE_ADMIN" | "ROLE_SUB_ADMIN" | "ROLE_CUSTOMER"
+    role: Role
     addresses: AddressResponse[];
     createdAt: string;
     updatedAt: string;

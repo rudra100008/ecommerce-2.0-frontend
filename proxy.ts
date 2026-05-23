@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_ROUTES = ["/login","/register","/login/forgot-password"]
 
-const PROTECTED_ROUTES = ["/home","/profile","/orders/","/cart"]
+const PROTECTED_ROUTES = ["/home","/profile","/orders/","/cart","/shop"]
 
 const ADMIN_ROUTES = ["/admin"]
 
