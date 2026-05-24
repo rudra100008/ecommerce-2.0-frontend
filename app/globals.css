@@ -82,7 +82,7 @@
   body {
     background-color: var(--color-surface);
     color: var(--color-primary);
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-size: var(--font-size-base);
     line-height: 1.6;
   }

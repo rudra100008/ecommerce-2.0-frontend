@@ -3,11 +3,11 @@
 import { FormField } from "@/components/ui/FormField";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginFormData, loginSchema } from "./../../../lib/validations/auth";
 import { useLogin } from "@/hooks/useAuth";
 import type { AxiosError } from "axios";
 import { EyeIcon, EyeOffIcon, ShoppingBag } from "lucide-react";
 import { useState } from "react";
+import { LoginFormData, loginSchema } from "@/lib/validations/auth";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);

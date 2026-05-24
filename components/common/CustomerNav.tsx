@@ -15,6 +15,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLogout } from "@/hooks/useAuth";
+import UserDropdown from "../ui/UserDropdown";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -22,17 +23,14 @@ export default function Navbar() {
   const user = useAuthStore((state) => state.user);
   const cartCount = useCartStore((state) => state.cart?.cartItems.length);
   const [open, setOpen] = useState(false);
-  const {mutate:logout,isPending,error}  = useLogout();
+  const {mutate:logout}  = useLogout();
 
   const navLinkClass = (path: string) =>
     pathname === path
       ? "px-3 py-1.5 rounded-md text-sm font-medium text-white bg-white/10 relative after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-4 after:h-0.5 after:bg-accent after:rounded-full"
       : "px-3 py-1.5 rounded-md text-sm font-medium text-white/55 hover:text-white/90 hover:bg-white/6 transition-colors";
 
-
-  const handleLogout = () =>{
-    logout();
-  }   
+  
   return (
     <nav className="bg-gray-800">
       <div className="h-20 flex items-center px-5  gap-4">
@@ -96,52 +94,30 @@ export default function Navbar() {
             <button type="button" onClick={() => setOpen((prev) => !prev)}>
               <UserAvatar />
             </button>
-            {/* Popup Box */}
-            {open && (
-              <div className="absolute  right-0 mt-2 w-52 bg-gray-900 rounded-xl border border-white/10 overflow-hidden z-50">
-                <div className="px-3.5 py-3 border-b border-white/8">
-                  <p className="text-base font-medium text-gray-100">
-                    {user?.fullName}
-                  </p>
-                  <p className="text-xs text-white/40 mt-0.5">{user?.email}</p>
-                </div>
-
-                <div className="p-1.5 flex flex-col">
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[16px] text-white/70  hover:text-gray-100 
-                    hover:bg-white/7 transition-colors "
-                  >
-                    <UserIcon className="w-5 h-5 text-white/70" />
-                    Profile
-                  </Link>
-                  <Link
-                    href="/orders"
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[16px] text-white/70  hover:text-gray-100 
-                    hover:bg-white/7 transition-colors "
-                  >
-                    <PackageIcon className="w-5 h-5 text-white/70" />
-                    My Orders
-                  </Link>
-                  <Link
-                    href="#"
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[16px] text-white/70  hover:text-gray-100 
-                    hover:bg-white/7 transition-colors "
-                  >
-                    <SettingsIcon className="w-5 h-5 text-white/70" />
-                    Setting
-                  </Link>
-
-                  <button
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[16px] text-white/70  hover:text-gray-100 
-                    hover:bg-white/7 transition-colors "
-                    onClick={handleLogout}
-                  >
-                    <LogOutIcon className="w-5 h-5 text-white/70" />
-                    Logout
-                  </button>
-                </div>
-              </div>
+            {/* User Drop Down Box */}
+            {open && user && (
+              <UserDropdown user={user} items={[
+                {
+                  label:"Profile",
+                  href: "/profile",
+                  icon: <UserIcon className="w-5 h-5 text-white/70" /> 
+                },
+                {
+                  label: "My Orders",
+                  href: "/orders",
+                  icon: <PackageIcon className="w-5 h-5 text-white/70" />
+                },
+                {
+                  label: "Setting",
+                  href: "/setting",
+                  icon: <SettingsIcon className="w-5 h-5 text-white/70" />
+                },
+                {
+                  label: "Logout",
+                  onClick: logout,
+                  icon: <LogOutIcon className="w-5 h-5 text-white/70" />
+                }
+              ]} />
             )}
           </div>
         </div>

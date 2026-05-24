@@ -1,5 +1,5 @@
 // useAuth.ts
-import { LoginFormData } from "@/lib/validations/auth";
+import { LoginFormData, RegisterFormData } from "@/lib/validations/auth";
 import { authService } from "@/services/auth.service";
 import { userService } from "@/services/user.service";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -24,6 +24,23 @@ export const useLogin = () => {
   });
 };
 
+export const useRegister = () =>{
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: (data: RegisterFormData) => authService.register(data),
+    onSuccess: async() =>{
+      try{
+        const user = await userService.getCurrentUser();
+        setUser(user);
+        router.push(user.role == "ROLE_ADMIN" ? "/admin" : "/home");
+      }catch{
+        router.push("/register?error=register_failed");
+      }
+    }
+  })
+}
 export const useLogout = () => {
   const router = useRouter();
   const clearUser = useAuthStore((state) => state.clearUser);
