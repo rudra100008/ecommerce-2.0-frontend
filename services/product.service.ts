@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import { CategoryDTO } from "@/types/category.types";
-import { PageInfo, ProductDTO, ProductWithImageAndCategory } from "@/types/product.types";
+import { PageInfo, ProductDTO, ProductWithImageAndCategory, ProductWithInventoryAndImageAndCategory } from "@/types/product.types";
 
 export const productService = {
   getAll: async (params: {
@@ -14,6 +14,22 @@ export const productService = {
       return response.data;
     } catch (error) {
       console.error("API call failed:", error);
+      throw error;
+    }
+  },
+
+
+  getAllWithInventoryAndImageAndCategory : async (params:{
+    pageNumber?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortDir?: string;
+  }): Promise<PageInfo<ProductWithInventoryAndImageAndCategory>>=>{
+    try{
+      const response  = await api.get("/api/products/fetchAllWithInventoryAndImageAndCategory",{params});
+      return response.data;
+    }catch(error){
+      console.error("Product API call failed:",error);
       throw error;
     }
   },
@@ -36,5 +52,5 @@ export const productService = {
         console.error("API call failed: ",error);
         throw error;
     }
-  }
+  },
 };

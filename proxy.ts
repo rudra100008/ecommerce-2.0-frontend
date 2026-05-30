@@ -33,6 +33,7 @@ export function proxy(request:NextRequest){
     const isAuthenticated = !!accessToken;
     const isAdmin = role  === "ROLE_ADMIN";
 
+    
     // if authenticated but visit public routes send to / home page
     if(isAuthenticated && isPublicRoutes(pathname)){
         return NextResponse.redirect(new URL("/home",request.url))
@@ -54,6 +55,11 @@ export function proxy(request:NextRequest){
     // authenticated & not admin but visit admin page redirect to /home
     if(isAuthenticated && !isAdmin && isAdminRoutes(pathname)){
         return NextResponse.redirect(new URL("/home",request.url));
+    }
+
+    // authenticated and admin but visit protected page redirect to /admin
+    if(isAuthenticated && isAdmin && isProtectedRoutes(pathname)){
+        return NextResponse.redirect(new URL("/admin",request.url));
     }
 
     const requestHeaders = new Headers(request.headers);

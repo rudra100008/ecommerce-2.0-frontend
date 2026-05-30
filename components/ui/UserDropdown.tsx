@@ -1,6 +1,5 @@
 import { UserResponse } from "@/types/user.types";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 
 interface DropDownItems {
   label: string;

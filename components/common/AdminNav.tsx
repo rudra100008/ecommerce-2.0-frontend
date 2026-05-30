@@ -1,3 +1,4 @@
+"use client"
 import {
   BellIcon,
   PackageIcon,
@@ -9,7 +10,6 @@ import UserAvatar from "../ui/UserAvatar";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import UserDropdown from "../ui/UserDropdown";
-import { useUIStore } from "@/store/useUIStore";
 import { ADMIN_PAGE_TITLES } from "@/constants/adminPageTitles";
 import { usePathname } from "next/navigation";
 
@@ -18,11 +18,10 @@ export default function AdminNav() {
   const hasNotifications = false;
   const user = useAuthStore((state) => state.user);
   const dropDownRef = useRef<HTMLDivElement>(null);
-    const pathname = usePathname();
+  const pathname = usePathname();
 
   const pageTitle = ADMIN_PAGE_TITLES[pathname] ?? "Admin";
 
-  const { sidebarCollapsed } = useUIStore();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -39,6 +38,10 @@ export default function AdminNav() {
       window.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(()=>{
+    document.title= "Orders | Shop Ease"
+  })
   return (
     <nav className="bg-gray-800 h-20 flex items-center justify-between px-5 gap-4">
       <div className="flex items-center gap-3 ">

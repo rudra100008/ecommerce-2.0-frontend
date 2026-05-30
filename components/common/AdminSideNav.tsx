@@ -1,3 +1,4 @@
+"use client"
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -5,7 +6,6 @@ import {
   BarChartIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
   ClipboardList,
   LayoutDashboardIcon,
   LogOutIcon,
@@ -117,7 +117,7 @@ function SubNavItem({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className={`block px-2.5 py-1.5 rounded-r-md text-xs transition-colors border-l-2
+      className={`block px-2.5 py-1 rounded-r-md text-sm transition-colors border-l-2
         ${
           isActive
             ? "border-accent text-accent bg-accent/5"
@@ -185,31 +185,25 @@ export default function AdminSideNav() {
           label="Dashboard"
           sidebarCollapsed={sidebarCollapsed}
         />
-        <NavItem
-          href="/admin/orders"
-          icon={<ClipboardList />}
-          label="Orders"
-          badge={12}
-          badgeVarient="danger"
-          sidebarCollapsed={sidebarCollapsed}
-        />
-
+      
          {sidebarCollapsed ? (
           <NavItem href="/admin/products" icon={<PackageIcon />} label="Products" sidebarCollapsed={sidebarCollapsed} />
         ) : (
           <NavCollapsible icon={<PackageIcon />} label="Products" basePath="/admin/products">
-            <SubNavItem href="/admin/products" label="All products" />
-            <SubNavItem href="/admin/products/new" label="Add product" />
-            <SubNavItem href="/admin/products/categories" label="Categories" />
+            <SubNavItem href="/admin/products" label="List" />
+            <SubNavItem href="/admin/products/create" label="Create" />
+            <SubNavItem href="/admin/products/edit" label="Edit" />
           </NavCollapsible>
         )}
 
-        <NavItem
-          href="/admin/customers"
-          icon={<UsersIcon />}
-          label="Customers"
-          sidebarCollapsed={sidebarCollapsed}
-        />
+       {sidebarCollapsed ? (
+        <NavItem href="/admim/orders" icon={<ClipboardList/>} label="Orders" sidebarCollapsed={sidebarCollapsed}/>
+       ):(
+        <NavCollapsible icon={<ClipboardList/>} label="Orders" basePath="/admin/orders">
+          <SubNavItem href="/admin/orders" label="List"/>
+          <SubNavItem href="/admin/orders/cart" label="Cart"/>
+        </NavCollapsible>
+       )}
 
         <div className="h-px bg-white/7 my-2" />
 

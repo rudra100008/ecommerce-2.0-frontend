@@ -8,6 +8,7 @@ import type { AxiosError } from "axios";
 import { EyeIcon, EyeOffIcon, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { LoginFormData, loginSchema } from "@/lib/validations/auth";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +25,8 @@ export default function LoginPage() {
   const onSubmit = (data: LoginFormData) => {
     login(data);
   };
+
+  
   const onEyeClick = () => {
     setShowPassword((prev) => !prev);
   };
@@ -121,7 +124,7 @@ export default function LoginPage() {
         </div>
 
         {/* Google Button */}
-        <button className="btn-outline w-full justify-center">
+        <Link  href={"http://localhost:8080/oauth2/authorization/google"}   className="btn-outline w-full justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -141,7 +144,7 @@ export default function LoginPage() {
             />
           </svg>
           Continue with Google
-        </button>
+        </Link>
 
         {/* Footer */}
         <p className="mt-4 text-center text-sm text-gray-500">
