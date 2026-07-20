@@ -1,12 +1,12 @@
-
-
-
-export default function CartList(){
-    return (
-        <div>
-            <div>
-                <h1>Cart List</h1>
-            </div>
-        </div>
-    )
+export const metadata = {
+  title: "Cart",
+};
+export default function CartList() {
+  return (
+    <div>
+      <div>
+        <h1>Cart List</h1>
+      </div>
+    </div>
+  );
 }

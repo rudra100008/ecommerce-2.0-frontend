@@ -1,9 +1,6 @@
-"use client"
-
-export default function OrdersPage(){
-    return(
-         <div className="flex min-h-screen ">
-              
-            </div>
-    )
+export const metadata = {
+  title: " Orders",
+};
+export default function OrdersPage() {
+  return <div className="flex min-h-screen "></div>;
 }

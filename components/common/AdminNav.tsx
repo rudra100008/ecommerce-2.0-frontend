@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   BellIcon,
   PackageIcon,
@@ -22,7 +22,6 @@ export default function AdminNav() {
 
   const pageTitle = ADMIN_PAGE_TITLES[pathname] ?? "Admin";
 
-
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -39,9 +38,6 @@ export default function AdminNav() {
     };
   }, []);
 
-  useEffect(()=>{
-    document.title= "Orders | Shop Ease"
-  })
   return (
     <nav className="bg-gray-800 h-20 flex items-center justify-between px-5 gap-4">
       <div className="flex items-center gap-3 ">

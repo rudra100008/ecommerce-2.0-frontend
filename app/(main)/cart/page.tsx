@@ -1,10 +1,5 @@
-import Navbar from "@/components/common/CustomerNav";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
-export default function Cart(){
-    return(
-        <div>
-            <Navbar />
-            Cart
-        </div>
-    )
+export default async function Cart() {
+  return <div></div>;
 }
