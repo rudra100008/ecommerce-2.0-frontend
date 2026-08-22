@@ -1,6 +1,6 @@
 // admin/layout.tsx
-import AdminNav from "@/components/common/AdminNav";
-import AdminSideNav from "@/components/common/AdminSideNav";
+import AdminNav from "@/app/admin/_components/AdminNav";
+import AdminSideNav from "@/app/admin/_components/AdminSideNav";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

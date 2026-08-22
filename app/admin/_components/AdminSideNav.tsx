@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -9,11 +9,11 @@ import {
   ClipboardList,
   LayoutDashboardIcon,
   LogOutIcon,
+  LucideIcon,
   PackageIcon,
   SettingsIcon,
   ShoppingBagIcon,
   TagIcon,
-  UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,12 +21,13 @@ import { useState } from "react";
 
 interface NavItemProps {
   href: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   label: string;
   badge?: number;
   badgeVarient?: "accent" | "danger";
   sidebarCollapsed: boolean;
 }
+
 function NavItem({
   href,
   icon,
@@ -37,7 +38,7 @@ function NavItem({
 }: NavItemProps) {
   const pathname = usePathname();
   const isActive = pathname === href;
-
+  const Icon = icon;
   return (
     <Link
       href={href}
@@ -47,15 +48,14 @@ function NavItem({
         ${
           isActive
             ? "bg-accent/10 text-accent"
-            : "text-white/50 hover:text-white/85 hover:bg-white/5"
+            : "text-black hover:text-accent-hover hover:bg-white/5"
         }`}
     >
-      <span
-        className={`w-4 h-4 shrink-0 
-        ${isActive ? "text-accent " : "text-white/35"}`}
-      >
-        {icon}
-      </span>
+      <Icon
+        size={18}
+        strokeWidth={1.8}
+        className={`shrink-0 ${isActive ? "text-accent" : "text-black"}`}
+      />
 
       {!sidebarCollapsed && <span className="flex-1 text-[16px]">{label}</span>}
 
@@ -81,7 +81,7 @@ function NavCollapsible({
   children,
   basePath,
 }: {
-  icon: React.ReactNode;
+  icon: LucideIcon;
   label: string;
   children: React.ReactNode;
   basePath: string;
@@ -89,19 +89,20 @@ function NavCollapsible({
   const pathname = usePathname();
   const isRouteActive = pathname.startsWith(basePath);
   const [open, setOpen] = useState(isRouteActive);
+  const Icon = icon;
 
   return (
     <div>
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className={`  w-full flex items-center gap-5 px-3 py-2 rounded-lg  transition-colors 
-      ${isRouteActive ? "text-white/85" : "text-white/50 hover:text-white/85 hover:bg-white/5"} `}
+        className={`  w-full flex items-center gap-5 px-3 py-2 rounded-lg  transition-all 
+      ${isRouteActive ? "text-black" : "text-black hover:text-accent-hover cursor-pointer scale-105 hover:bg-white/5"} `}
       >
-        <span className="w-4 h-4 shrink-0 ">{icon}</span>
+        <Icon size={18} strokeWidth={1.8} className="shrink-0" />
         <span className="flex-1 text-[16px] text-left">{label}</span>
         <ChevronDownIcon
-          className={`w-3.5 h-3.5 text-white/35 transition-transform ${open ? "rotate-180" : ""} `}
+          className={`w-3.5 h-3.5 text-black transition-transform ${open ? "rotate-180" : ""} `}
         />
       </button>
       {open && (
@@ -121,7 +122,7 @@ function SubNavItem({ href, label }: { href: string; label: string }) {
         ${
           isActive
             ? "border-accent text-accent bg-accent/5"
-            : "border-transparent text-white/40 hover:text-white/70 hover:border-white/20"
+            : "border-transparent text-gray-900 hover:text-accent-hover hover:border-white/20"
         }`}
     >
       {label}
@@ -130,15 +131,15 @@ function SubNavItem({ href, label }: { href: string; label: string }) {
 }
 
 export default function AdminSideNav() {
-  const {sidebarCollapsed, toggleSideBar} = useUIStore();
+  const { sidebarCollapsed, toggleSideBar } = useUIStore();
   const user = useAuthStore((state) => state.user);
   const { mutate: logout } = useLogout();
 
   const initials = user?.fullName?.substring(0, 2).toUpperCase() ?? "AD";
   return (
     <aside
-      className={`relative bg-gray-900  h-screen flex flex-col shrink-0 transition-all duration-300
-    ${sidebarCollapsed ? "w-25" : "w-65"}`}
+      className={`relative bg-white border-r-2  h-screen flex flex-col shrink-0 transition-all duration-300
+    ${sidebarCollapsed ? "w-20" : "w-56"}`}
     >
       {/* Toogle arrow button*/}
       <button
@@ -181,29 +182,47 @@ export default function AdminSideNav() {
 
         <NavItem
           href="/admin"
-          icon={<LayoutDashboardIcon />}
+          icon={LayoutDashboardIcon}
           label="Dashboard"
           sidebarCollapsed={sidebarCollapsed}
         />
-      
-         {sidebarCollapsed ? (
-          <NavItem href="/admin/products" icon={<PackageIcon />} label="Products" sidebarCollapsed={sidebarCollapsed} />
+
+        {sidebarCollapsed ? (
+          <NavItem
+            href="/admin/products"
+            icon={PackageIcon}
+            label="Products"
+            sidebarCollapsed={sidebarCollapsed}
+          />
         ) : (
-          <NavCollapsible icon={<PackageIcon />} label="Products" basePath="/admin/products">
+          <NavCollapsible
+            icon={PackageIcon}
+            label="Products"
+            basePath="/admin/products"
+          >
             <SubNavItem href="/admin/products" label="List" />
             <SubNavItem href="/admin/products/create" label="Create" />
             <SubNavItem href="/admin/products/edit" label="Edit" />
           </NavCollapsible>
         )}
 
-       {sidebarCollapsed ? (
-        <NavItem href="/admim/orders" icon={<ClipboardList/>} label="Orders" sidebarCollapsed={sidebarCollapsed}/>
-       ):(
-        <NavCollapsible icon={<ClipboardList/>} label="Orders" basePath="/admin/orders">
-          <SubNavItem href="/admin/orders" label="List"/>
-          <SubNavItem href="/admin/orders/cart" label="Cart"/>
-        </NavCollapsible>
-       )}
+        {sidebarCollapsed ? (
+          <NavItem
+            href="/admin/orders"
+            icon={ClipboardList}
+            label="Orders"
+            sidebarCollapsed={sidebarCollapsed}
+          />
+        ) : (
+          <NavCollapsible
+            icon={ClipboardList}
+            label="Orders"
+            basePath="/admin/orders"
+          >
+            <SubNavItem href="/admin/orders" label="List" />
+            <SubNavItem href="/admin/orders/cart" label="Cart" />
+          </NavCollapsible>
+        )}
 
         <div className="h-px bg-white/7 my-2" />
 
@@ -215,19 +234,19 @@ export default function AdminSideNav() {
 
         <NavItem
           href="/admin/analytics"
-          icon={<BarChartIcon />}
+          icon={BarChartIcon}
           label="Analytics"
           sidebarCollapsed={sidebarCollapsed}
         />
         <NavItem
           href="/admin/discounts"
-          icon={<TagIcon />}
+          icon={TagIcon}
           label="Discounts"
           sidebarCollapsed={sidebarCollapsed}
         />
         <NavItem
           href="/admin/settings"
-          icon={<SettingsIcon />}
+          icon={SettingsIcon}
           label="Settings"
           sidebarCollapsed={sidebarCollapsed}
         />

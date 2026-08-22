@@ -1,6 +1,7 @@
 import api from "@/lib/axios";
 import { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth.types";
 import axios from "axios";
+import { toast } from "sonner";
 
 
 export const authService = {
@@ -11,8 +12,8 @@ export const authService = {
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                if (error.response?.data.status === 401) {
-                    console.error("Login Failed:: Invalid Credentials");
+                if (error.response?.status === 401) {
+                    toast.error("Invalid email or password");
                 } else if (error.response?.data.status === 503) {
                     console.error("Service failed:: Try after some time");
                 }

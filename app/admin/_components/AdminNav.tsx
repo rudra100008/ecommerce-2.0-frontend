@@ -6,10 +6,10 @@ import {
   SettingsIcon,
   UserIcon,
 } from "lucide-react";
-import UserAvatar from "../ui/UserAvatar";
+import UserAvatar from "../../../components/ui/UserAvatar";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import UserDropdown from "../ui/UserDropdown";
+import UserDropdown from "../../../components/ui/UserDropdown";
 import { ADMIN_PAGE_TITLES } from "@/constants/adminPageTitles";
 import { usePathname } from "next/navigation";
 
@@ -39,7 +39,7 @@ export default function AdminNav() {
   }, []);
 
   return (
-    <nav className="bg-gray-800 h-20 flex items-center justify-between px-5 gap-4">
+    <nav className="bg-white border border-gray-200 h-16 flex items-center justify-between px-5 gap-4">
       <div className="flex items-center gap-3 ">
         <h1 className="text-white/80 font-medium text-2xl">{pageTitle}</h1>
       </div>
@@ -61,9 +61,9 @@ export default function AdminNav() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="relative h-9 w-9 rounded-lg flex items-center justify-center text-gray-300 hover:bg-gray-300 hover:text-gray-900 transition-colors cursor-pointer"
+            className="relative h-9 w-9 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-300 hover:text-gray-900 transition-colors cursor-pointer"
           >
-            <BellIcon />
+            <BellIcon size={18} strokeWidth={1.8} className="shrink-0" />
             {hasNotifications && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-primary " />
             )}

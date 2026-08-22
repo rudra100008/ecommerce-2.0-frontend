@@ -1,17 +1,28 @@
 "use client";
-import { useMediaUpload } from "@/hooks/useMedia";
+import { useMediaUpload, useMultiMediaDelete } from "@/hooks/useMedia";
 import {
   ArrowRight,
-  CloudyIcon,
-  FileImage,
+  Crown,
   ImageIcon,
-  ImagePlus,
+  ImageOff,
   Images,
-  ImagesIcon,
+  X,
 } from "lucide-react";
-import { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, scale } from "framer-motion";
+import Image from "next/image";
 
+type UploadImage = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  isPrimary: boolean;
+
+  publicId?: string;
+  uploadedUrl?: string;
+};
+
+// ================== File Upload component: Upload multiple images for product ====================
 function FileUpload({
   onFileChange,
 }: {
@@ -41,19 +52,25 @@ function FileUpload({
         className="group w-full h-80 max-w-2xl px-4 py-2 rounded-2xl border-2 border-dashed border-sky-300 bg-sky-100 transition-colors 
         duration-300 hover:bg-sky-300 hover:border-sky-400  flex flex-col justify-center items-center "
       >
-        <motion.div
-          key={isHovered ? "images" : "image"}
-          initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-accent mb-4"
-        >
-          {isHovered ? (
-            <Images size={90} strokeWidth={1.3} />
-          ) : (
-            <ImageIcon size={90} strokeWidth={1.3} />
-          )}
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isHovered ? "images" : "image"}
+            initial={{ opacity: 0, scale: 0.8, rotate: -90 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 0.4 }}
+            exit={{
+              opacity: 0,
+              rotate: 90,
+            }}
+            className="text-accent mb-4"
+          >
+            {isHovered ? (
+              <Images size={90} strokeWidth={1.3} />
+            ) : (
+              <ImageIcon size={90} strokeWidth={1.3} />
+            )}
+          </motion.div>
+        </AnimatePresence>
         <h1
           className={`text-2xl font-semibold ${isHovered ? "text-gray-900" : "text-gray-700"} `}
         >
@@ -69,51 +86,186 @@ function FileUpload({
     </div>
   );
 }
-export function ProductStep1() {
-  const { mutate: mediaUpload, isSuccess, isError } = useMediaUpload();
 
-  const [files, setFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+//===================== Product Step 1 component : This is for uploading images ===============
+export function ProductStep1() {
+  const {
+    mutate: mediaUpload,
+    data: mediaResponse,
+    isSuccess,
+    isError,
+    isPending: isUploading,
+  } = useMediaUpload();
+  const { mutate: mediaDelete } = useMultiMediaDelete();
+  const [images, setImages] = useState<UploadImage[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
-    const getFiles = Array.from(event.target.files);
 
-    setFiles((prev) => [...prev, ...getFiles]);
-    console.log("Image File handled:", files);
-    getFiles.forEach((file) => {
-      const imageUrl = URL.createObjectURL(file);
-      console.log("Image preview:", file);
-      setImagePreviews((prev) => [...prev, imageUrl]);
-    });
+    const selectedImages = Array.from(event.target.files);
+
+    const newImages: UploadImage[] = selectedImages.map((file, id) => ({
+      id: crypto.randomUUID(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      isPrimary: images.length === 0 && id === 0,
+    }));
+
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  const handleRemoveImage = (id: string) => {
+    const imageToDelete = images.find((image) => image.id === id);
+
+    if (!imageToDelete) return;
+
+    if (imageToDelete.publicId) {
+      mediaDelete([imageToDelete.publicId]);
+    }
+
+    URL.revokeObjectURL(imageToDelete.previewUrl);
+
+    setImages((prev) => prev.filter((image) => image.id !== id));
+  };
+
+  const handlePrimaryImage = (id: string) => {
+    setImages((prev) =>
+      prev.map((image) => ({
+        ...image,
+        isPrimary: image.id === id,
+      })),
+    );
+  };
+  // useEffect(() => {
+  //   console.log(
+  //     "Images :",
+  //     images.map((prev) => prev),
+  //   );
+  // }, []);
+  const primaryImage = images.find((image) => image.isPrimary);
+
+  const otherImages = images.filter((image) => !image.isPrimary);
+
+  const handleUpload = () => {
+    mediaUpload(
+      {
+        files: images.map((image) => image.file),
+        folder: "products",
+      },
+      {
+        onSuccess: (data) => {
+          setImages((prev) =>
+            prev.map((image, index) => ({
+              ...image,
+              publicId: data[index]?.publicId,
+              uploadedUrl: data[index]?.url,
+            })),
+          );
+        },
+      },
+    );
   };
   return (
     <div>
-      <div className="flex gap-12">
+      <div className="">
         {/* Fileupload button */}
-        {/* <input type="file" onChange={handleFileChange} multiple /> */}
-        <motion.div>
+        <motion.div className=" flex justify-center items-center mb-24">
           <FileUpload onFileChange={handleFileChange} />
         </motion.div>
 
         {/*  Images Preview */}
-        <div className="">
-          {imagePreviews && imagePreviews.length > 0 ? (
-            <motion.div className="grid grid-cols-3 gap-4 mt-8">
-              {imagePreviews.map((image) => (
-                <motion.img
-                  whileHover={{ scale: 1.05 }}
-                  key={image}
-                  src={image}
-                  alt="image"
-                  width={200}
-                  height={200}
+        <div className="rounded-2xl bg-gray-100 p-8 space-y-8">
+          {/* Primary Image */}
+          <div className="flex justify-center">
+            {primaryImage ? (
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="group relative w-[650px] h-[280px] rounded-2xl overflow-hidden shadow-lg"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  type="button"
+                  onClick={() => handlePrimaryImage(primaryImage.id)}
+                  className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
+                     transition-all duration-300   rounded-full bg-black/40  p-1 cursor-pointer
+                      ${primaryImage.isPrimary === true ? "text-yellow-400 font-semibold " : "text-white"}
+                     `}
+                >
+                  <Crown size={12} />
+                </motion.button>
+
+                {/*X button in image  */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  type="button"
+                  onClick={() => handleRemoveImage(primaryImage.id)}
+                  className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
+                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
+                >
+                  <X size={12} />
+                </motion.button>
+                <Image
+                  src={primaryImage.previewUrl}
+                  alt="Primary"
+                  fill
+                  className="object-cover"
                 />
+              </motion.div>
+            ) : (
+              <div className="bg-gray-300 text-center p-3 flex justify-center items-center gap-5 rounded-2xl">
+                <ImageOff size={50} />{" "}
+                <span className="font-semibold text-2xl">
+                  Upload your image
+                </span>
+              </div>
+            )}
+          </div>
+          {/* Other images */}
+          {otherImages.length > 0 && (
+            <motion.div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-8 ">
+              {otherImages.map((image) => (
+                <div
+                  key={image.previewUrl}
+                  className="group relative flex justify-center items-center bg-white p-3 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition "
+                >
+                  {/* Primary image button to select a primary image */}
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    type="button"
+                    onClick={() => handlePrimaryImage(image.id)}
+                    className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
+                     transition-all duration-300   rounded-full bg-black/40  p-1  hover:bg-yellow-400 cursor-pointer
+                      ${image.isPrimary === true ? "text-yellow-400 font-semibold" : "text-white"}
+                     `}
+                  >
+                    <Crown size={12} />
+                  </motion.button>
+
+                  {/*X button in image  */}
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    type="button"
+                    onClick={() => handleRemoveImage(image.id)}
+                    className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
+                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
+                  >
+                    <X size={12} />
+                  </motion.button>
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="relative w-52 h-52"
+                  >
+                    <Image
+                      src={image.previewUrl}
+                      alt="thumbnail"
+                      width={200}
+                      height={200}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </motion.div>
+                </div>
               ))}
-            </motion.div>
-          ) : (
-            <motion.div className="text-center text-gray-600 font-normal text-xl ">
-              <p>No Product image</p>
             </motion.div>
           )}
         </div>
@@ -122,7 +274,8 @@ export function ProductStep1() {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => mediaUpload({ files, folder: "products" })}
+        type="button"
+        onClick={handleUpload}
       >
         <p className="flex justify-center items-center gap-1 border  rounded-xl px-2 py-1 mt-20 ">
           Next <ArrowRight />{" "}
