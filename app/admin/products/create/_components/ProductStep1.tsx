@@ -8,8 +8,8 @@ import {
   Images,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, scale } from "framer-motion";
+import {  useRef, useState } from "react";
+import { AnimatePresence, motion} from "framer-motion";
 import Image from "next/image";
 
 type UploadImage = {

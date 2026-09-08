@@ -1,5 +1,5 @@
-import { CreateProductForm } from "./_components/CreateProductForm";
-import { ProductStep1 } from "./_components/ProductStep1";
+
+import ProductWizard from "./_components/ProductWizard";
 
 export const metadata = {
   title: "Create Product",
@@ -7,7 +7,7 @@ export const metadata = {
 export default function CreateProductsPage() {
   return (
     <>
-      <ProductStep1 />
+     <ProductWizard/>
     </>
   );
 }
