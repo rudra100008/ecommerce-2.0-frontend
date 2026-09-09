@@ -1,9 +1,10 @@
-"use client"
+"use client";
 import { ProductStep1 } from "./ProductStep1";
 import ProductStep2 from "./ProductStep2";
 import ProductStep3 from "./ProductStep3";
 import { ReactNode, useState } from "react";
 import CreateHeader from "./CreateHeader";
+import { ProductStepExample1 } from "./ProductStepExample1";
 
 export type ProductStepId = 1 | 2 | 3;
 
@@ -16,7 +17,7 @@ const steps: ProductStep[] = [
   {
     id: 1,
     name: "Images",
-    component: <ProductStep1 />,
+    component: <ProductStepExample1/>,
   },
   {
     id: 2,
@@ -34,7 +35,10 @@ export default function ProductWizard() {
 
   const activeStep = steps.find((step) => step.id === currentStepId);
   return (
-    <div>
+    <div className="flex flex-col justify-center max-w-5xl  border ">
+      <div className="py-2 px-4 mb-5 text-2xl font-normal ">
+        <h1 >Product Registration</h1>
+      </div>
       <CreateHeader
         steps={steps}
         activeStepId={currentStepId}

@@ -30,7 +30,7 @@ export default function CreateHeader({
   onStepChange,
 }: CreatHeaderProps) {
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center ">
       {steps.map((step) => (
         <HeaderItems
           key={step.id}

@@ -169,18 +169,18 @@ export function ProductStep1() {
     <div>
       <div className="">
         {/* Fileupload button */}
-        <motion.div className=" flex justify-center items-center mb-24">
+        <motion.div className=" flex mb-24">
           <FileUpload onFileChange={handleFileChange} />
         </motion.div>
 
         {/*  Images Preview */}
-        <div className="rounded-2xl bg-gray-100 p-8 space-y-8">
+        <div className={`rounded-2xl  bg-gray-100  p-8 space-y-8`}>
           {/* Primary Image */}
           <div className="flex justify-center">
             {primaryImage ? (
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="group relative w-[650px] h-[280px] rounded-2xl overflow-hidden shadow-lg"
+                className="group relative w-full h-full  max-w-[650px] max-h-[280px] rounded-2xl overflow-hidden shadow-lg"
               >
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -212,6 +212,7 @@ export function ProductStep1() {
                 />
               </motion.div>
             ) : (
+             
               <div className="bg-gray-300 text-center p-3 flex justify-center items-center gap-5 rounded-2xl">
                 <ImageOff size={50} />{" "}
                 <span className="font-semibold text-2xl">
@@ -268,7 +269,7 @@ export function ProductStep1() {
               ))}
             </motion.div>
           )}
-        </div>
+          </div>
       </div>
 
       <motion.button
