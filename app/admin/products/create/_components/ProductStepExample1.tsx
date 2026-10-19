@@ -8,8 +8,8 @@ import {
   Images,
   X,
 } from "lucide-react";
-import {  useRef, useState } from "react";
-import { AnimatePresence, motion} from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 
 type UploadImage = {
@@ -20,6 +20,13 @@ type UploadImage = {
 
   publicId?: string;
   uploadedUrl?: string;
+};
+
+type ImagePreviewProps = {
+  primaryImage: UploadImage | undefined;
+  otherImages: UploadImage[];
+  handleRemoveImage: (id: string) => void;
+  handlePrimaryImage: (id: string) => void;
 };
 
 // ================== File Upload component: Upload multiple images for product ====================
@@ -83,6 +90,95 @@ function FileUpload({
         {/* <motion.h1 className="text-2xl">Upload your product images</motion.h1>
         <motion.p className="text-blue-400"> Max Size of images: 5MB</motion.p> */}
       </motion.button>
+    </div>
+  );
+}
+// Image preview to show image in structured way
+function ImagePreviews({
+  primaryImage,
+  otherImages,
+  handleRemoveImage,
+  handlePrimaryImage,
+}: ImagePreviewProps) {
+  return (
+    <div className=" w-full max-w-[400px]">
+      <div className="grid grid-cols-2 gap-3 ">
+        {primaryImage && (
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="group relative aspect-square col-span-2 rounded-xl overflow-hidden shadow-lg"
+          >
+            {/* Primary image button to select a primary image */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              type="button"
+              onClick={() => handlePrimaryImage(primaryImage.id)}
+              className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
+                     transition-all duration-300   rounded-full bg-black/40  p-1  hover:bg-yellow-400 cursor-pointer
+                      ${primaryImage.isPrimary === true ? "text-yellow-400 font-semibold" : "text-white"}
+                     `}
+            >
+              <Crown size={12} />
+            </motion.button>
+            {/*X button in image  */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              type="button"
+              onClick={() => handleRemoveImage(primaryImage.id)}
+              className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
+                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
+            >
+              <X size={12} />
+            </motion.button>
+            {/*Primary Image */}
+            <Image
+              src={primaryImage.previewUrl}
+              alt="Primary Image"
+             fill
+              className="object-cover"
+            />
+          </motion.div>
+        )}
+
+        {otherImages.length >= 0 && (
+
+            otherImages.map((otherImage) => (
+              <div
+                key={otherImage.previewUrl}
+                className="group relative aspect-square bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition "
+              >
+                {/* Primary image button to select a primary image */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  type="button"
+                  onClick={() => handlePrimaryImage(otherImage.id)}
+                  className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
+                     transition-all duration-300   rounded-full bg-black/40  p-1  hover:bg-yellow-400 cursor-pointer
+                      ${otherImage.isPrimary === true ? "text-yellow-400 font-semibold" : "text-white"}
+                     `}
+                >
+                  <Crown size={12} />
+                </motion.button>
+                {/*X button in image  */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  type="button"
+                  onClick={() => handleRemoveImage(otherImage.id)}
+                  className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
+                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
+                >
+                  <X size={12} />
+                </motion.button>
+                <Image
+                  src={otherImage.previewUrl}
+                  alt={"Other Image"}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))
+        )}
+      </div>
     </div>
   );
 }
@@ -167,16 +263,19 @@ export function ProductStepExample1() {
   };
   return (
     <div>
-      <div className="">
+      <div className="flex  justify-between">
         {/* Fileupload button */}
         <motion.div className=" flex mb-24">
           <FileUpload onFileChange={handleFileChange} />
         </motion.div>
 
         {/*  Images Preview */}
-        <div>
-
-        </div>
+        <ImagePreviews
+          primaryImage={primaryImage}
+          otherImages={otherImages}
+          handlePrimaryImage={handlePrimaryImage}
+          handleRemoveImage={handleRemoveImage}
+        />
       </div>
 
       <motion.button
@@ -188,7 +287,7 @@ export function ProductStepExample1() {
         <p className="flex justify-center items-center gap-1 border  rounded-xl px-2 py-1 mt-20 ">
           Next <ArrowRight />
         </p>
-      </motion.button> 
+      </motion.button>
     </div>
   );
 }
