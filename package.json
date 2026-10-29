@@ -33,6 +33,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@hookform/devtools": "^4.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.41",
     "@types/react": "^19",

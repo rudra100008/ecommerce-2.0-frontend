@@ -55,11 +55,30 @@ export const productService = {
   },
   createProduct: async (product: ProductRequest, category: CategoryRequest): Promise<ProductDTO> => {
     try {
-      const request = {
-        product: product,
-        category: category
+      const formData = new FormData();
+      formData.append(
+        "product",
+        new Blob([JSON.stringify(product)],{
+          type:"application/json"
+        })
+      )
+
+      formData.append(
+        "category",
+        new Blob([JSON.stringify(category)],{
+          type:"application/json"
+        })
+      )
+
+      const response = await api.post<ProductDTO>(
+      "/api/products",
+      formData,
+      {
+        headers: {
+          "Content-Type": undefined,
+        },
       }
-      const response = await api.post("/api/products", request);
+    );
       return response.data;
     } catch (error) {
       console.error("Failed to create a product: ", error)

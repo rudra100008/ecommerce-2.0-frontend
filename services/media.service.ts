@@ -1,15 +1,16 @@
 import api from "@/lib/axios";
+import { MediaUploadResponse } from "@/types/media.types";
 
 
 export const mediaServices = {
-    upload: async (files: File[], folder: string) => {
+    upload: async (files: File[], folder: string): Promise<MediaUploadResponse[]> => {
         try {
             const formData = new FormData();
             formData.append("folder", folder)
             for (const file of files) {
                 formData.append("files", file);
             }
-            const response = await api.post("/api/media/upload/multiple", formData, {
+            const response = await api.post<MediaUploadResponse[]>("/api/media/upload/multiple", formData, {
                 headers: { "Content-Type": undefined }
             })
             console.log("Response of mediaService:", response)

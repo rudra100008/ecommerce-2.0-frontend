@@ -1,293 +1,330 @@
 "use client";
-import { useMediaUpload, useMultiMediaDelete } from "@/hooks/useMedia";
-import {
-  ArrowRight,
-  Crown,
-  ImageIcon,
-  ImageOff,
-  Images,
-  X,
-} from "lucide-react";
-import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+
+import { ChangeEvent, useRef, useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import { Crown, ImageIcon, ImageOff, Images, Loader2, X } from "lucide-react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
-type UploadImage = {
-  id: string;
-  file: File;
-  previewUrl: string;
-  isPrimary: boolean;
+import { useMediaUpload, useMultiMediaDelete } from "@/hooks/useMedia";
+import type { ImageFormData, WizardFormData } from "@/lib/validations/product";
 
-  publicId?: string;
-  uploadedUrl?: string;
+// ================== Upload rules ====================
+const MAX_IMAGES = 8;
+const MAX_FILE_SIZE_MB = 10;
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Returns an error message if the selected files break a rule, otherwise null.
+function validateFiles(files: File[], currentCount: number): string | null {
+  if (currentCount + files.length > MAX_IMAGES) {
+    return `You can upload at most ${MAX_IMAGES} images.`;
+  }
+  if (files.some((file) => !ALLOWED_TYPES.includes(file.type))) {
+    return "Only JPG, PNG and WEBP images are allowed.";
+  }
+  if (files.some((file) => file.size > MAX_FILE_SIZE_MB * 1024 * 1024)) {
+    return `Each image must be under ${MAX_FILE_SIZE_MB} MB.`;
+  }
+  return null;
+}
+
+// Guarantees exactly one primary image: if none is marked, the first one becomes primary.
+function ensurePrimary(images: ImageFormData[]): ImageFormData[] {
+  if (images.length === 0 || images.some((image) => image.primaryImage)) {
+    return images;
+  }
+  return images.map((image, index) => ({ ...image, primaryImage: index === 0 }));
+}
+
+// ================== File Upload: big dashed button that opens the file picker ====================
+type FileUploadProps = {
+  onFilesSelected: (files: File[]) => void;
+  isUploading: boolean;
+  disabled: boolean;
 };
 
-type ImagePreviewProps = {
-  primaryImage: UploadImage | undefined;
-  otherImages: UploadImage[];
-  handleRemoveImage: (id: string) => void;
-  handlePrimaryImage: (id: string) => void;
-};
-
-// ================== File Upload component: Upload multiple images for product ====================
-function FileUpload({
-  onFileChange,
-}: {
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
+function FileUpload({ onFilesSelected, isUploading, disabled }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    // Reset the input so picking the same file again still fires onChange.
+    event.target.value = "";
+    if (files.length) onFilesSelected(files);
   };
+
   return (
-    <div>
+    <div className="w-full max-w-2xl">
       <input
         type="file"
         ref={fileInputRef}
-        onChange={onFileChange}
-        className="sr-only"
+        onChange={handleChange}
+        accept={ALLOWED_TYPES.join(",")}
         multiple
+        className="sr-only"
       />
 
       <motion.button
+        // Without type="button" this would submit the wizard's <form>.
+        type="button"
+        disabled={disabled}
+        onClick={() => fileInputRef.current?.click()}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleButtonClick}
-        className="group w-full h-80 max-w-2xl px-4 py-2 rounded-2xl border-2 border-dashed border-sky-300 bg-sky-100 transition-colors 
-        duration-300 hover:bg-sky-300 hover:border-sky-400  flex flex-col justify-center items-center "
+        whileHover={disabled ? undefined : { scale: 1.05 }}
+        whileTap={disabled ? undefined : { scale: 0.95 }}
+        className="group flex h-80 w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-sky-300 bg-sky-100 px-4 py-2
+        transition-colors duration-300 hover:border-sky-400 hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={isHovered ? "images" : "image"}
+            key={isUploading ? "loading" : isHovered ? "images" : "image"}
             initial={{ opacity: 0, scale: 0.8, rotate: -90 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: 90 }}
             transition={{ duration: 0.4 }}
-            exit={{
-              opacity: 0,
-              rotate: 90,
-            }}
-            className="text-accent mb-4"
+            className="mb-4 text-accent"
           >
-            {isHovered ? (
+            {isUploading ? (
+              <Loader2 size={90} strokeWidth={1.3} className="animate-spin" />
+            ) : isHovered ? (
               <Images size={90} strokeWidth={1.3} />
             ) : (
               <ImageIcon size={90} strokeWidth={1.3} />
             )}
           </motion.div>
         </AnimatePresence>
-        <h1
-          className={`text-2xl font-semibold ${isHovered ? "text-gray-900" : "text-gray-700"} `}
-        >
-          Upload your product Images
+
+        <h1 className={`text-2xl font-semibold ${isHovered ? "text-gray-900" : "text-gray-700"}`}>
+          {isUploading ? "Uploading images..." : "Upload your product images"}
         </h1>
         <p className={`mt-2 ${isHovered ? "text-white" : "text-sky-500"}`}>
-          Max size: 5MB
+          JPG, PNG or WEBP · Max {MAX_FILE_SIZE_MB}MB each · Up to {MAX_IMAGES} images
         </p>
-
-        {/* <motion.h1 className="text-2xl">Upload your product images</motion.h1>
-        <motion.p className="text-blue-400"> Max Size of images: 5MB</motion.p> */}
       </motion.button>
     </div>
   );
 }
-// Image preview to show image in structured way
-function ImagePreviews({
-  primaryImage,
-  otherImages,
-  handleRemoveImage,
-  handlePrimaryImage,
-}: ImagePreviewProps) {
+
+// ================== Image Card: one uploaded image with "set primary" and "remove" buttons ====================
+type ImageCardProps = {
+  image: ImageFormData;
+  isLarge?: boolean;
+  disabled: boolean;
+  onSetPrimary: (publicId: string) => void;
+  onRemove: (publicId: string) => void;
+};
+
+function ImageCard({ image, isLarge = false, disabled, onSetPrimary, onRemove }: ImageCardProps) {
   return (
-    <div className=" w-full max-w-[400px]">
-      <div className="grid grid-cols-2 gap-3 ">
-        {primaryImage && (
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="group relative aspect-square col-span-2 rounded-xl overflow-hidden shadow-lg"
-          >
-            {/* Primary image button to select a primary image */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              type="button"
-              onClick={() => handlePrimaryImage(primaryImage.id)}
-              className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
-                     transition-all duration-300   rounded-full bg-black/40  p-1  hover:bg-yellow-400 cursor-pointer
-                      ${primaryImage.isPrimary === true ? "text-yellow-400 font-semibold" : "text-white"}
-                     `}
-            >
-              <Crown size={12} />
-            </motion.button>
-            {/*X button in image  */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              type="button"
-              onClick={() => handleRemoveImage(primaryImage.id)}
-              className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
-                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
-            >
-              <X size={12} />
-            </motion.button>
-            {/*Primary Image */}
-            <Image
-              src={primaryImage.previewUrl}
-              alt="Primary Image"
-             fill
-              className="object-cover"
-            />
-          </motion.div>
-        )}
+    <motion.div
+      layout
+      whileHover={{ scale: 1.02 }}
+      className={`group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-lg
+        ${isLarge ? "col-span-2" : ""}`}
+    >
+      <Image
+        src={image.imageUrl}
+        alt={image.primaryImage ? "Primary product image" : "Product image"}
+        fill
+        sizes={isLarge ? "400px" : "200px"}
+        className="object-cover"
+      />
 
-        {otherImages.length >= 0 && (
+      <div className="absolute right-2 top-2 z-10 flex gap-1">
+        {/* Crown: always visible on the primary image, shown on hover for the others */}
+        <motion.button
+          type="button"
+          title="Set as primary image"
+          aria-label="Set as primary image"
+          disabled={disabled}
+          whileHover={{ scale: 1.1 }}
+          onClick={() => onSetPrimary(image.publicId)}
+          className={`cursor-pointer rounded-full bg-black/40 p-1 transition-all duration-300 hover:bg-yellow-400
+            ${image.primaryImage ? "text-yellow-400" : "text-white opacity-0 group-hover:opacity-100"}`}
+        >
+          <Crown size={12} />
+        </motion.button>
 
-            otherImages.map((otherImage) => (
-              <div
-                key={otherImage.previewUrl}
-                className="group relative aspect-square bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition "
-              >
-                {/* Primary image button to select a primary image */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  type="button"
-                  onClick={() => handlePrimaryImage(otherImage.id)}
-                  className={`absolute top-2 right-9 z-20   opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100   
-                     transition-all duration-300   rounded-full bg-black/40  p-1  hover:bg-yellow-400 cursor-pointer
-                      ${otherImage.isPrimary === true ? "text-yellow-400 font-semibold" : "text-white"}
-                     `}
-                >
-                  <Crown size={12} />
-                </motion.button>
-                {/*X button in image  */}
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  type="button"
-                  onClick={() => handleRemoveImage(otherImage.id)}
-                  className="absolute top-2 right-2 z-20    opacity-1 scale-75 group-hover:opacity-100  group-hover:scale-100
-                    transition-all duration-300   rounded-full bg-black/40 text-white p-1  hover:bg-red-400 cursor-pointer"
-                >
-                  <X size={12} />
-                </motion.button>
-                <Image
-                  src={otherImage.previewUrl}
-                  alt={"Other Image"}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))
-        )}
+        <motion.button
+          type="button"
+          title="Remove image"
+          aria-label="Remove image"
+          disabled={disabled}
+          whileHover={{ scale: 1.1 }}
+          onClick={() => onRemove(image.publicId)}
+          className="cursor-pointer rounded-full bg-black/40 p-1 text-white transition-colors duration-300 hover:bg-red-400"
+        >
+          <X size={12} />
+        </motion.button>
       </div>
+    </motion.div>
+  );
+}
+
+// ================== Image Previews: primary image on top (large), the rest in a grid below ====================
+type ImagePreviewsProps = {
+  images: ImageFormData[];
+  disabled: boolean;
+  onSetPrimary: (publicId: string) => void;
+  onRemove: (publicId: string) => void;
+};
+
+function ImagePreviews({ images, disabled, onSetPrimary, onRemove }: ImagePreviewsProps) {
+  if (images.length === 0) {
+    return (
+      <div className="flex w-full max-w-[400px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-10 text-gray-400">
+        <ImageOff size={40} strokeWidth={1.3} />
+        <p className="text-sm">No images uploaded yet</p>
+      </div>
+    );
+  }
+
+  const primaryImage = images.find((image) => image.primaryImage);
+  const otherImages = images.filter((image) => !image.primaryImage);
+
+  return (
+    <div className="grid w-full max-w-[400px] grid-cols-2 gap-3">
+      {primaryImage && (
+        <ImageCard
+          isLarge
+          image={primaryImage}
+          disabled={disabled}
+          onSetPrimary={onSetPrimary}
+          onRemove={onRemove}
+        />
+      )}
+
+      {otherImages.map((image) => (
+        <ImageCard
+          key={image.publicId}
+          image={image}
+          disabled={disabled}
+          onSetPrimary={onSetPrimary}
+          onRemove={onRemove}
+        />
+      ))}
     </div>
   );
 }
 
-//===================== Product Step 1 component : This is for uploading images ===============
+//===================== Product Step 1: upload images and store them in the wizard form ===============
 export function ProductStepExample1() {
   const {
-    mutate: mediaUpload,
-    data: mediaResponse,
-    isSuccess,
-    isError,
-    isPending: isUploading,
-  } = useMediaUpload();
-  const { mutate: mediaDelete } = useMultiMediaDelete();
-  const [images, setImages] = useState<UploadImage[]>([]);
+    control,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useFormContext<WizardFormData>();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files) return;
+  // `images` re-renders the UI. Inside async handlers we use getValues() instead,
+  // because it always returns the latest value, even after an await.
+  const images = useWatch({ name: "product.images" });
 
-    const selectedImages = Array.from(event.target.files);
+  const { mutateAsync: uploadImages, isPending: isUploading } = useMediaUpload();
+  const { mutateAsync: deleteImages, isPending: isDeleting } = useMultiMediaDelete();
+  const isBusy = isUploading || isDeleting;
 
-    const newImages: UploadImage[] = selectedImages.map((file, id) => ({
-      id: crypto.randomUUID(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      isPrimary: images.length === 0 && id === 0,
-    }));
-
-    setImages((prev) => [...prev, ...newImages]);
+  // Single place that writes images to the form, so the "one primary" rule is always applied.
+  const saveImages = (nextImages: ImageFormData[]) => {
+    setValue("product.images", ensurePrimary(nextImages), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
   };
 
-  const handleRemoveImage = (id: string) => {
-    const imageToDelete = images.find((image) => image.id === id);
+  const handleFilesSelected = async (files: File[]) => {
+    if (isBusy) return;
 
-    if (!imageToDelete) return;
-
-    if (imageToDelete.publicId) {
-      mediaDelete([imageToDelete.publicId]);
+    const error = validateFiles(files, getValues("product.images").length);
+    if (error) {
+      toast.error(error);
+      return;
     }
 
-    URL.revokeObjectURL(imageToDelete.previewUrl);
+    try {
+      const uploaded = await uploadImages({ files, folder: "products" });
 
-    setImages((prev) => prev.filter((image) => image.id !== id));
+      // The backend should return one result per file. Anything else is a partial upload.
+      const isComplete =
+        uploaded.length === files.length &&
+        uploaded.every((item) => item.imageUrl && item.publicId);
+
+      if (!isComplete) {
+        // Delete whatever did upload so it doesn't sit orphaned in Cloudinary.
+        const uploadedIds = uploaded.map((item) => item.publicId).filter(Boolean);
+        if (uploadedIds.length) deleteImages(uploadedIds).catch(() => {});
+        toast.error("Some images failed to upload. Please try again.");
+        return;
+      }
+
+      const newImages: ImageFormData[] = uploaded.map((item) => ({
+        imageUrl: item.imageUrl,
+        publicId: item.publicId,
+        primaryImage: false, // ensurePrimary() picks the first one if needed
+      }));
+
+      saveImages([...getValues("product.images"), ...newImages]);
+      toast.success("Images uploaded successfully.");
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      toast.error("Image upload failed.");
+    }
   };
 
-  const handlePrimaryImage = (id: string) => {
-    setImages((prev) =>
-      prev.map((image) => ({
+  const handleSetPrimary = (publicId: string) => {
+    saveImages(
+      getValues("product.images").map((image) => ({
         ...image,
-        isPrimary: image.id === id,
-      })),
+        primaryImage: image.publicId === publicId,
+      }))
     );
   };
-  // useEffect(() => {
-  //   console.log(
-  //     "Images :",
-  //     images.map((prev) => prev),
-  //   );
-  // }, []);
-  const primaryImage = images.find((image) => image.isPrimary);
 
-  const otherImages = images.filter((image) => !image.isPrimary);
+  const handleRemove = async (publicId: string) => {
+    if (isBusy) return;
 
-  const handleUpload = () => {
-    mediaUpload(
-      {
-        files: images.map((image) => image.file),
-        folder: "products",
-      },
-      {
-        onSuccess: (data) => {
-          setImages((prev) =>
-            prev.map((image, index) => ({
-              ...image,
-              publicId: data[index]?.publicId,
-              uploadedUrl: data[index]?.url,
-            })),
-          );
-        },
-      },
-    );
+    try {
+      // Delete from Cloudinary first, then from the form, so the two never disagree.
+      await deleteImages([publicId]);
+      saveImages(getValues("product.images").filter((image) => image.publicId !== publicId));
+    } catch {
+      toast.error("Could not remove the image.");
+    }
   };
+
   return (
-    <div>
-      <div className="flex  justify-between">
-        {/* Fileupload button */}
-        <motion.div className=" flex mb-24">
-          <FileUpload onFileChange={handleFileChange} />
-        </motion.div>
+    <section className="space-y-6">
+      <header>
+        <h2 className="text-xl font-semibold">Product Images</h2>
+        <p className="text-sm text-gray-500">
+          Upload up to {MAX_IMAGES} images and choose one as the primary image.
+        </p>
+      </header>
 
-        {/*  Images Preview */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <FileUpload
+          onFilesSelected={handleFilesSelected}
+          isUploading={isUploading}
+          disabled={isBusy || images.length >= MAX_IMAGES}
+        />
+
         <ImagePreviews
-          primaryImage={primaryImage}
-          otherImages={otherImages}
-          handlePrimaryImage={handlePrimaryImage}
-          handleRemoveImage={handleRemoveImage}
+          images={images}
+          disabled={isBusy}
+          onSetPrimary={handleSetPrimary}
+          onRemove={handleRemove}
         />
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        type="button"
-        onClick={handleUpload}
-      >
-        <p className="flex justify-center items-center gap-1 border  rounded-xl px-2 py-1 mt-20 ">
-          Next <ArrowRight />
+      {errors.product?.images?.message && (
+        <p role="alert" className="text-sm text-red-600">
+          {errors.product.images.message}
         </p>
-      </motion.button>
-    </div>
+      )}
+    </section>
   );
 }

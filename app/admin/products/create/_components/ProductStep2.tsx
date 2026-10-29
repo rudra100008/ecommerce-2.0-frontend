@@ -1,120 +1,98 @@
 import { FormField } from "@/components/ui/FormField";
-import { useCreateProduct } from "@/hooks/useProducts"
-import { CategoryFormData, categorySchema , ProductFormData,productSchema} from "@/lib/validations/product";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { WizardFormData } from "@/lib/validations/product";
+import { useFormContext} from "react-hook-form";
 
 
 export default function ProductStep2() {
-    const router = useRouter();
-    const { mutate: createProduct, isPending } = useCreateProduct();
-    const { register: registerCategory, handleSubmit: handleCategorySubmit, formState: { errors: categoryErrors} } =
-        useForm<CategoryFormData>({
-            resolver: zodResolver(categorySchema),
-            mode: 'onTouched'
-        });
-    const {register: registerProduct, handleSubmit: handleProductSubmit, formState: {errors: productErrors}} =
-    useForm<ProductFormData>({
-        resolver: zodResolver(productSchema),
-        mode: 'onTouched'
-    })
-
-    
-    
-
-    const onCategorySubmit = (data: CategoryFormData) => {
-
-    }
-    const onProductSubmit = (data: ProductFormData) =>{
-
-    }
-    // const handleSubmit = () => {
-    //     createProduct(
-    //         {productRequest, categoryRequest},
-    //         {onSuccess: () => router.push("/admin/products")}
-    //     )
-    // }
-
+    const {
+        register,
+        formState: { errors}
+    } = useFormContext<WizardFormData>();
     return (
-        <div className="flex justify-center items-center">
-            <label>
-                <h1>Enter Product Details</h1>
-            </label>
+        <section className="space-y-6">
+            <header>
+                <h2 className="text-xl font-semibold">Product Information</h2>
+                <p className="text-sm text-gray-500">Fill in category and product details</p>
+            </header>
 
 
-            <div>
-                <form onSubmit={handleCategorySubmit(onCategorySubmit)}>
-                    <FormField id="categoryName" label="categoryName" error={categoryErrors.categoryName?.message}>
+            
+                    <FormField id="categoryName" label="categoryName" error={errors.category?.categoryName?.message}>
                         <input
                         id="categoryName"
                         type="text"
                         placeholder="Enter category name"
                         className="input"
-                        {...registerCategory("categoryName")}
+                        {...register("category.categoryName")}
                         />
                     </FormField>
-                </form>
+            
 
-                <form onSubmit={handleProductSubmit(onProductSubmit)}>
-                    <FormField id="name" label="name" error={productErrors.name?.message}>
+                
+                    <FormField id="name" label="name" error={errors.product?.name?.message}>
                         <input
                         id="name"
                         type="text"
                         placeholder="Enter product name..."
                         className="input"
-                        {...registerProduct("name")}
+                        {...register("product.name")}
                         />
                     </FormField>
-                    <FormField id="description" label="description" error={productErrors.description?.message}>
+                    <FormField id="description" label="description" error={errors.product?.description?.message}>
                         <textarea
                         id="description"
                         rows={5}
                         maxLength={1000}
                         placeholder="Enter product description..."
                         className="input"
-                        {...registerProduct("description")}
+                        {...register("product.description")}
                         ></textarea>
                     </FormField>
-                    <FormField id="discount" label="discount" error={productErrors.discount?.message}>
-                        <input
-                        id="discount"
-                        type="number"
-                        placeholder="Enter product discount..."
-                        className="input"
-                        {...registerProduct("discount")}
-                        />
-                    </FormField>
-                    <FormField id="price" label="price" error={productErrors.price?.message}>
+
+                    <FormField id="price" label="price" error={errors.product?.price?.message}>
                         <input
                         id="price"
                         type="number"
-                        placeholder="Enter product price..."
+                        step={0.01}
+                        
+                        placeholder="0.00"
                         className="input"
-                        {...registerProduct("price")}
+                        {...register("product.price",{valueAsNumber:true})}
                         />
                     </FormField>
-                    <FormField id="sku" label="sku" error={productErrors.sku?.message}>
+
+                    <FormField id="discount" label="discount" error={errors.product?.discount?.message}>
+                        <input
+                        id="discount"
+                        type="number"
+                        
+                        placeholder="0.00"
+                        className="input"
+                        {...register("product.discount",{valueAsNumber:true})}
+                        />
+                    </FormField>
+                    
+                    <FormField id="sku" label="sku" error={errors.product?.sku?.message}>
                         <input
                         id="sku"
                         type="text"
                         placeholder="Enter product sku..."
                         className="input"
-                        {...registerProduct("sku")}
+                        {...register("product.sku")}
                         />
                     </FormField>
-                    <FormField id="stockQuantity" label="stockQuantity" error={productErrors.stockQuantity?.message}>
+                    <FormField id="stockQuantity" label="stockQuantity" error={errors.product?.stockQuantity?.message}>
                         <input
                         id="stockQuantity"
                         type="number"
-                        placeholder="Enter product stockQuantity..."
+                        placeholder="0"
                         className="input"
-                        {...registerProduct("stockQuantity")}
+                        {...register("product.stockQuantity",{valueAsNumber:true})}
                         />
                     </FormField>
-                </form>
+                
 
-            </div>
-        </div>
+        
+        </section>
     )
 }

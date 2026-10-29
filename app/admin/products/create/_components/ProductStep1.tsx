@@ -136,12 +136,7 @@ export function ProductStep1() {
       })),
     );
   };
-  // useEffect(() => {
-  //   console.log(
-  //     "Images :",
-  //     images.map((prev) => prev),
-  //   );
-  // }, []);
+
   const primaryImage = images.find((image) => image.isPrimary);
 
   const otherImages = images.filter((image) => !image.isPrimary);
@@ -158,7 +153,7 @@ export function ProductStep1() {
             prev.map((image, index) => ({
               ...image,
               publicId: data[index]?.publicId,
-              uploadedUrl: data[index]?.url,
+              uploadedUrl: data[index]?.imageUrl,
             })),
           );
         },
